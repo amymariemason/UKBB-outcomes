@@ -1,0 +1,10 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes/Steps/logname.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 6 Apr 2020, 18:37:10
+
+{com}. cap log close
+{smcl}
+{com}{sf}{ul off}

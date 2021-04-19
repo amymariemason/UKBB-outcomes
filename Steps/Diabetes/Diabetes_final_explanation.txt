@@ -1,0 +1,19 @@
+Please see attached Diabetes final for a dataset with 6 variables:
+
+N_eid: usual id variable
+diabetes: outcome of flowchart for intake self-reporting
+diabetes_all: outcome of flowchart updated for all self-reporting
+diabetes_HESDeath: outcome of looking at HES and Death certificate fields only
+
+Type2_con:  Binary variable, conservative estimate of whether patient has Type 2 Diabetes. This is only those that class as probable Type 2 at the end of the flowchart with the updated self-reporting . This does not use any information from HES/Death Certificates. This adds about 827 Type 2 cases to the original flowchart.
+
+Type2_lib: Binary variable, liberal estimate of whether patient has Type 2 Diabetes.
+This includes all those who class as possible or probable Type 2 at the end of the updated flowchart. I then added any of those with Type 2 Diabetes codes (E11.X) in the HES/Death data, ignoring those who had Type 1 diabetes codes (E10.X) as well. [Note this ignores ~ 3000 patients]
+
+Type1_con:  Binary variable, conservative estimate of whether patient has Type 1 Diabetes. This is only those that class as probable Type 2 at the end of the flowchart with the updated self-reporting . This does not use any information from HES/Death Certificates. 
+
+Type1_lib: Binary variable, liberal estimate of whether patient has Type 1 Diabetes.
+This includes all those who class as possible or probable Type 1 at the end of the updated flowchart. I then added any of those with Type 1 Diabetes codes (E10.X) in the HES/Death data, ignoring those who had Type 2 diabetes codes (E11.X) as well. [Note this ignores ~ 3000 patients]
+.
+
+I’ve included the code also, in case you are interested, as well as a powerpoint explanation of the flowchart used by the original writers (i.e. the one that produces outcome Summary). The files titled Step1-Step5 were written by them. 

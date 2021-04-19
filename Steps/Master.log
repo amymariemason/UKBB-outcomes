@@ -1,0 +1,239 @@
+
+  ___  ____  ____  ____  ____ (R)
+ /__    /   ____/   /   ____/
+___/   /   /___/   /   /___/   14.1   Copyright 1985-2015 StataCorp LP
+  Statistics/Data Analysis            StataCorp
+                                      4905 Lakeway Drive
+                                      College Station, Texas 77845 USA
+                                      800-STATA-PC        http://www.stata.com
+                                      979-696-4600        stata@stata.com
+                                      979-696-4601 (fax)
+
+3-user Stata network perpetual license:
+       Serial number:  501406258071
+         Licensed to:  Jo Howson
+                       Department of Public Health and Primary Care
+
+Notes:
+      1.  Stata is running in batch mode.
+      2.  Unicode is supported; see help unicode_advice.
+
+. do Master.do 
+
+. ***********************************************************
+. * Add multiple binary UKBB outcomes
+. ***********************************************************
+. * Author: Amy Mason 
+. * Report bugs to: am2609@medschl.cam.ac.uk 
+. * Date: Updated Feb 2020
+. * Input: 
+. ** inputfile: stata dta file with input fields: must contain n_eid variable a
+> nd fields: 
+. ** ****    20002,20004, 6150, 40001, 40002, 
+. ** ****    6152, 6153, 6177, 53, 33, 31
+. ** ****    20008, 20010, 3627, 3894, 2966, 4056, 4012, 4022  (if doing time t
+> o event data)
+. 
+. ** instructionfile: csv file containing instructions for each outcome, should
+>  be contained in the UKBB drive & called bespoke_outcome_current.csv
+. ** **** NOTE: this program matches those outcomes as an OR check. Anyone who 
+> matches in any field will be marked case, all others control. 
+. 
+. ** output_org: replace this text with a space seperated list of the outcomes 
+> you want to generate
+. 
+. ** HES: Biobank HES outcomes dataset with n_eid linked to inputfile. must con
+> tain n_eid, diag_icd9, diag_icd10, oper4
+. 
+. ** withdrawn: this is a stata file with a list of all the people who have wit
+> hdrawn consent. It should be on the Biobank drive
+. 
+. ** outputfilename: replace this text with the suggested variable name of the 
+> variable you want to add
+. *
+. * Output:
+. *  outputfilename_binary : this contains any binary outcomes created
+. ** **** All outcomes will be given up to three forms:   {outcome} 0 = control
+>  1= case  
+. ** ****                                                 {outcome}_nSR 0 = con
+> trol & self-reported 1= case, excluding self report data
+. ** ****                                                 {outcome}_pri 0 = con
+> trol, 1 = case 2 = excluded from primary care analysis
+. *  outputfilename_pi : this contains any prevalence and incident data
+. ** **** All outcomes will be given as a pair (P/I variable & a date) for each
+>  column type filled in on instructions sheet: HES, Death, Primary, Cancer, Se
+> lf report & All
+. ** ****                                                 {outcome}_{type} 0 = 
+> control 1 = incident event 2 = prevalent event 
+. ** ****                                                 {outcome}_{type}_date
+>  earliest date event occurs
+. * 
+. * outputfilename : merge of both files
+. *********************************************
+. 
+. ************************************************************
+. * USER INPUTS GO HERE 
+. ***********************************************************
+. 
+. 
+. clear all
+
+. macro drop _all
+
+. set more off
+
+. 
+. * file name for output of participant outcomes 
+. local outfilename ukb_tahzeeb_Oct_2019
+
+. 
+. * location for output
+. local outfiles /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/ou
+> tcome_requests
+
+. 
+. * stata dta file extracted from UKBioBank
+. local inputfile /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/a
+> llfields.dta
+
+. 
+. * list outcomes from the instruction file you would like in your dataset (no 
+> commas between)
+. local output_org "ms_ca_prost ms_ca_breast ms_ca_lung ms_ca_kid ms_ca_blad ms
+> _ca_bowel ms_ca_gastric ms_ca_hep ms_ca_panc ms_ca_brain ms_ca_fem ms_ca_LymH
+> aem ms_ca_skin"
+
+. 
+. * xlsx file containing specifications for all instructions. 
+. local instructionfile `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_o
+> utcomes/outcome_requests/bespoke_outcome_tahzeeb.xls""'
+
+. 
+. * locations of the HES outcomes 
+. local HES `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/hesi
+> n_20191011.txt""'
+
+. local HES_diag `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes
+> /hesin_diag_20191011.txt""'
+
+. local HES_oper `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes
+> /hesin_oper_20191011.txt""'
+
+. 
+. * location of primary care data
+. local PRIMARY `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/
+> primary_read_only20191011.csv""'
+
+. local PRIMARY_REG `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outco
+> mes/gp_registrations_20191011.txt""'
+
+. 
+. * withdrawal location
+. local WITHDRAWN `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcome
+> s/withdrawals_20200204.csv""'
+
+. 
+. * location of step do files 
+. local LOCATION /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Co
+> de/Stata_outcomes/Steps
+
+. 
+. * location of temporary staging files (these can be deleted once run is compl
+> ete)
+. local TEMPSPACE /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/C
+> ode/Temp
+
+. 
+. * date of extraction of data from biobank (used as censoring endpoint for con
+> trols)
+. local ENDDATE "11Oct2019"
+
+. 
+. ****************************************************
+. * NO USER INPUT NEEDED BEYOND THIS POINT
+. ****************************************************
+. 
+. 
+. 
+. *****************************************
+. * Warmup Code
+. 
+. * move to location of programs 
+. cd `LOCATION'
+/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes
+> /Steps
+
+. 
+. * create log
+. 
+. ********
+. cap log close
+
+. local time_string = "$S_DATE"+"_" +"$S_TIME"
+
+. local time_string = subinstr("`time_string'", ":", "_", .)
+
+. local time_string = subinstr("`time_string'", " ", "_", .)
+
+. local logname ="`outfiles'"+"/"+"`outfilename'"+"`time_string'"+".log"
+
+. log using "`logname'", replace
+(note: file /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/outcome
+> _requests/ukb_tahzeeb_Oct_201912_Jun_2020_16_10_56.log not found)
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/outcom
+> e_requests/ukb_tahzeeb_Oct_201912_Jun_2020_16_10_56.log
+  log type:  text
+ opened on:  12 Jun 2020, 16:10:56
+
+. noi di "Run on $S_DATE $S_TIME"
+Run on 12 Jun 2020 16:10:56
+
+. 
+. 
+. 
+. * create locations of temporary files
+. local temp_HES_matched `TEMPSPACE'/Temp_HES_match.dta
+
+. local temp_PC_matched `TEMPSPACE'/Temp_PC_match.dta
+
+. local temp_proc_matched `TEMPSPACE'/Temp_proc_match.dta
+
+. local temp_death_matched `TEMPSPACE'/Temp_death_match.dta
+
+. local temp_SR_matched `TEMPSPACE'/Temp_SR_match.dta
+
+. local temp_HES `TEMPSPACE'/Temp_HES.dta
+
+. local temp_HES2 `TEMPSPACE'/Temp_HES2.dta
+
+. local temp_date `TEMPSPACE'/Temp_date.dta
+
+. local temp_oper `TEMPSPACE'/Temp_oper.dta
+
+. local temp_withdrawn `TEMPSPACE'/Temp_withdrawn.dta
+
+. local temp_primary_censor `TEMPSPACE'/Temp_censor.dta
+
+. 
+. * Alternative input for using test file
+. * location of test file
+. * comment out next two lines if not testing program.
+. *local TEST /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/
+> Stata_outcomes/Test
+. *qui include test.do
+. 
+. ***** STEP 1: SETUP *****
+. *step1a: create all the variables pulled from the table, including pulling in
+>  primary care code lists
+. qui include Step1a.do
+ ms_ca_prost in instruction file
+Creating variables for:
+`"Prostate Ca"'
+.dta file is corrupt
+    Pieces in the file are not where they are expected to be.
+r(688);
+
+end of do-file
+r(688);
