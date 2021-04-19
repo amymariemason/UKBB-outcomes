@@ -1,6 +1,5 @@
 # Stata_outcomes
 There are several options here for creating a new outcome field that combines self-report fields, HES data and ONS and primary care datasets. 
-(NOTE: Diabetes and Cancer are still being updated, do not use this for those outcomes - revert back to the master branch for those) 
 
 This program has a control sheet: bespoke_outcome_v2.1.xls and a set of Stata.do files, controlled from Master.do
 
@@ -9,9 +8,19 @@ Events are taken to be any match to any completed field (OR match) and people ar
 The most recent update can also seperate events into incident and prevalent, giving the earliest known such date. 
 
 **************************************************************
+If you have access to zz_mr folder:
 The Control sheet:
+Use the settings tab on the bespoke_outcome_v2.1. You will need to up date: output name, output location, location of code files (i.e. where the copy of this git is), location of this control file, and the names for the setting file. Then select which outcomes you want by writing "Y" in the include this column, next to their name.  
+Run "stata -b do /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes/Steps/Make_Settings.do  "<location of bespoke_outcome_v2.1 file>"
+Then "stata -b do <name of your output setting file.do>
+NOTE: Please do not edit the copy of bespoke_outcome_v2.1 in zz_mr, but make your own local copy.
 
-Open this and edit the sheet to include the outcome codes you want to indicate a case.
+If you do not have access to zz_mr folder:
+
+Open Master.do. Under "RARELY CHANGED USER INPUTS GO HERE" is a list of the data inputs for this program. The majority are the raw UK Biobank files, but the first is a custom data extract of the UK Biobank self report fields. All come from the CEU biobank drive. You will need to make a local copy of the Master.do file with data locations you do have read access to. 
+
+ADDING NEW DEFINITIONS
+Open your local copy of bespoke_outcomes and edit the sheet to include the outcome codes you want to indicate a case.
 
 Completer: Include your name so that others know who created the definition
 Outcome name: This becomes the description for the variable in the stata output, as well as an immediate summary for those using the control sheet. 
@@ -36,10 +45,6 @@ Other comments: Free text
 
 Note: Codes must be comma seperated. ".X" at the end of a code causes a wildcard match that agrees with the start of your code. Simply adding X at the end will not have this effect, and will cause missed outcomes (e.g. 600.1.X not 600.1X). Otherwise the program looks for an exact match
 
-*************************************************************
-The .do files
-
-The config section at the start of the Master.do file must be edited to give the location of the relevant files. 
 
 **************************************************************
 INSTRUCTIONS ON HOW TO EXTRACT DATA 
