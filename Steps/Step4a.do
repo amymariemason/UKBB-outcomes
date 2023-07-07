@@ -1,6 +1,5 @@
 * Create Primary Care report
 * find the primary care cut down data
-local temp_Prim `TEMPSPACE'/Temp_Primary.dta
 use `temp_Prim', clear
 
 * add baseline date
@@ -52,6 +51,6 @@ keep eid first* PC*
 bysort eid: keep if _n==1
 
 *tempfile temp_PC_match
-local temp_PC_matched `TEMPSPACE'/Temp_PC_match.dta
+tempfile temp_PC_matched
 save `temp_PC_matched', replace
 

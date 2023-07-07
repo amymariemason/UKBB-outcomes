@@ -3,11 +3,11 @@
 clear all
 macro drop _all
 set more off 
-local outfilename angina
+local outfilename CVD_Oct22
 local outfiles /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/outcome_requests/
-local output_org "cad_sanna angina_sanna"
+ local output_org  "aa aaa af ast cad_int ckd dvt haem hf ischtia pe pvd_simple taa tia ukb_ich ukb_sah ukb_stri ukb_stroke vte" 
 local instructionfile /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code/Stata_outcomes/bespoke_outcome_v2.1.xls 
 local LOCATION /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code/Stata_outcomes/Steps/ 
 local out_diabetes 0 
 cd /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code/Stata_outcomes/Steps/ 
-qui include Master.do 
+noi include Master.do 

@@ -6,10 +6,10 @@
 
 
 use `inputfile', clear
-gen baseline = n_53_0_0
+gen baseline = ts_53_0_0
 format baseline %td
-gen baseline_year = n_53_0_0/365.25 + 1960
-gen baseline_age = (n_53_0_0-n_33_0_0)/365.25
+gen baseline_year = ts_53_0_0/365.25 + 1960
+gen baseline_age = (ts_53_0_0-n_33_0_0)/365.25
 
 * The additional variables for cancer are 40011 (hist of tumour),  40013 (icd9), 40006 (icd10)
 * the additional time details are: *40005 (date of cancer diagnosis)  - this is for 40011, 40013 & 40006
@@ -21,10 +21,6 @@ gen baseline_age = (n_53_0_0-n_33_0_0)/365.25
 
 
 * list all cancer report variables to check 
-
-local cancerreports 40013 
-local cancerreports10 40006 
-local cancerhist 40011
 
 capture confirm variable ts_40005_0_0
 	if _rc!=0 {

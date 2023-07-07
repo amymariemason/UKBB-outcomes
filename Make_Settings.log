@@ -1,0 +1,137 @@
+
+  ___  ____  ____  ____  ____ (R)
+ /__    /   ____/   /   ____/
+___/   /   /___/   /   /___/   14.1   Copyright 1985-2015 StataCorp LP
+  Statistics/Data Analysis            StataCorp
+                                      4905 Lakeway Drive
+                                      College Station, Texas 77845 USA
+                                      800-STATA-PC        http://www.stata.com
+                                      979-696-4600        stata@stata.com
+                                      979-696-4601 (fax)
+
+3-user Stata network perpetual license:
+       Serial number:  501406258071
+         Licensed to:  Jo Howson
+                       Department of Public Health and Primary Care
+
+Notes:
+      1.  Stata is running in batch mode.
+      2.  Unicode is supported; see help unicode_advice.
+
+. do /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb
+> _outcomes/Code/Stata_outcomes/Steps/Make_Settings.do /rds/project/asb38/rds-a
+> sb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code/Stata_outcom
+> es/bespoke_outcome_v2.1.xls 
+
+. ********** Make settings file from within Stata*********
+. ** Author: Amy Mason
+. ** Date: Jan 2021
+. ** inputs : excel instruction sheet bespoke_outcome_v2.1.xls
+. ** outputs: settings.do file for running stata outcomes algorithm in code dir
+> ectory (
+. ** USER INPUT
+. 
+. * CODE to run in slurm
+. * module load ceuadmin/stata/14
+. * stata -b do /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr
+> /Amy/AMY_bb_outcomes/Code/Stata_outcomes/Steps/Make_Settings.do  "/rds/projec
+> t/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code
+> /Stata_outcomes/bespoke_outcome_v2.1.xls"
+. 
+. * CODE to run in stata
+. * do /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_
+> bb_outcomes/Code/Stata_outcomes/Steps/Make_Settings.do  "/rds/project/asb38/r
+> ds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code/Stata_ou
+> tcomes/bespoke_outcome_v2.1.xls"
+. args input1
+
+. 
+. * clear stata
+. set more off 
+
+. clear all
+
+. macro drop set*
+
+. 
+. * import instruction sheet
+. import excel using `input1', sheet("Settings") firstrow allstring clear
+
+. 
+. * create local variables
+. local set_outputfolder1=Value[2]
+
+. local set_outputname1 = Value[1]
+
+. local set_instructionfile1 = Value[4]
+
+. local set_LOCATION1 = Value[3]
+
+. local set_SETTING = Value[5]
+
+. 
+. * create list of variables
+. keep Variable Includethis
+
+. keep if Includethis!=""
+(1,289 observations deleted)
+
+. if Variable[1]=="diabetes" {
+. local set_out_diabetes1=1
+. }
+
+. else{
+. local set_out_diabetes1=0
+. }
+
+. 
+. drop if Variable=="diabetes"
+(0 observations deleted)
+
+. levelsof Variable, local(set_outcome1) clean
+aa aaa af ast cad_int ckd dvt haem hf ischtia pe pvd_simple taa tia ukb_ich ukb
+> _sah ukb_stri ukb_stroke vte
+
+. 
+. * make Settings.do
+. di  "`set_SETTING'.do"
+/rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outc
+> omes/Code/Stata_outcomes/Steps/Settings_vitD.do
+
+. file open dofile using "`set_SETTING'.do", write replace
+
+. * TEXT OF FILE
+. file write dofile " // This is an automatically genetated Settings file for r
+> unning Master.do created with Make_Settings" _n
+
+. file write dofile "// Please read the readme file or the header of Master.do 
+> for more info" _n
+
+. file write dofile  "clear all" _n 
+
+. file write dofile       "macro drop _all" _n 
+
+. file write dofile       "set more off " _n 
+
+. file write dofile       "local outfilename `set_outputname1'" _n 
+
+. file write dofile       "local outfiles `set_outputfolder1'" _n 
+
+. file write dofile       `" local output_org  "`set_outcome1'" "' _n  
+
+. file write dofile       "local instructionfile `set_instructionfile1' " _n 
+
+. file write dofile       "local LOCATION `set_LOCATION1' " _n 
+
+. file write dofile       "local out_diabetes `set_out_diabetes1' " _n 
+
+. file write dofile       "cd `set_LOCATION1' " _n 
+
+. file write dofile       "qui include Master.do " _n
+
+. 
+. file close dofile
+
+. 
+. 
+end of do-file

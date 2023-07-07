@@ -71,20 +71,20 @@ foreach v of local output_org{
 		restore
 	}	
 * Create Prevalent report variable 
-	if (Prevalent!="Yes"){
+	if (Prevalent!="YES"){
 		noi di as text "Prevalence/Incidence reporting not required for `v'"
 		noi di as text "If this is an error, review control file & ensure you have written YES in the Prevalence/Incidence Column"
 		local `v'_Pre 0
 	}
 
-	if (Prevalent=="Yes"){
+	if (Prevalent=="YES"){
 		local `v'_Pre 1
 	}
 
 * Create the primary care match set
 
 	* First check if primary care data is required
-	if (Use!="Yes"){
+	if (Use!="YES"){
 		noi di as text "Primary Care data not required for `v'"
 		noi di as text "If this is an error, review control file & ensure you have written YES in the Use Primary Care Column"
 		local `v'_Use 0
@@ -92,17 +92,17 @@ foreach v of local output_org{
 		local `v'_ReadV3 `" "NO_CODES" "'
 	}
 
-	if (Use=="Yes"){
+	if (Use=="YES"){
 		local `v'_Use 1
 		* Primary care requires keeping event dates due to the reduced censor dates on many participants
 		local `v'_Pre 1
 		* Check instruction present if required       
-		if (Match!="Yes"&(inlist(ReadV3,"-", "")&inlist(ReadV2,"-", ""))){  
+		if (Match!="YES"&(inlist(ReadV3,"-", "")&inlist(ReadV2,"-", ""))){  
 			noi display as error "ERROR: Primary care data instruction missing for `v'"
 			error 498 
 		}         
 		* Otherwise, if match ICD10 is selected, match ICD10 HES codes to Read codes using the UK Biobank matching  
-		if (Match=="Yes"){
+		if (Match=="YES"){
 			* Check instruction is unambigeous.
 			if (!inlist(ReadV3,"-", "")|!inlist(ReadV2,"-", "")){
 			noi display as error "ERROR: Ambigeous primary care instructions matching `v' in csv file"
@@ -151,7 +151,7 @@ foreach v of local output_org{
 			}
 			restore	
 		}
-		if (Match!="Yes"){
+		if (Match!="YES"){
 		* Otherwise take read code values from fields
 			foreach field of varlist ReadV2 ReadV3{
 				preserve

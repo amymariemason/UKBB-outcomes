@@ -38,10 +38,10 @@ local outfiles /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/outco
 local inputfile /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/allfields.dta
 
 * locations of the HES outcomes 
-local HES_diag `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/hesin_diag_20191011.txt""'
+local HES_diag `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/phenotype/P7439/pre_qc_data/HES/hesin_diag_20210727.txt""'
 
 * withdrawal location
-local WITHDRAWN `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/withdrawals_20200204.csv""'
+local WITHDRAWN `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Input/w7439_20210809.csv""'
 
 * location of step do files 
 local LOCATION /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes/Steps
@@ -52,13 +52,13 @@ local TEMPSPACE /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code
 * date of extraction of data from biobank (used as censoring endpoint for controls)
 * see: http://biobank.ndph.ox.ac.uk/showcase/exinfo.cgi?src=Data_providers_and_dates* NB: I am ignoring the different enddate for primary care for England vision, as they are censored from the final dataset anyway. Endpoints are applied based on country of recruitment.  
 * enddates are censored to HES (if hes data only used), Prim (if primary data used), Cancer (if running cancer specific algorithm)
-local HES_END_ENG "30Jun2020"
-local HES_END_SCOT "31Oct2016"
-local HES_END_WALES "29Feb2016"
+local HES_END_ENG "31Mar2021"
+local HES_END_SCOT "31Mar2021"
+local HES_END_WALES "28Feb2018"
 local PRIM_END_SCOT "31Mar2017"
 local PRIM_END_WALES "31Aug2017"
 local PRIM_END_ENG "31May2016"
-local CANCER_ENG "31March2016"
+local CANCER_ENG "31July2019"
 local CANCER_SCOT "31Oct2015"
 
 * what censoring to apply to controls; options = "HES", "PRIMARY", "CANCER"

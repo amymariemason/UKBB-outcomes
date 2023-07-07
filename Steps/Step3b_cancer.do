@@ -4,10 +4,10 @@
 ** CONCEPT2: rewrite to output: "eid, event, date, place of report" for each event then sort, reshape and merge?
 
 use `inputfile', clear
-gen baseline = n_53_0_0
+gen baseline = ts_53_0_0
 format baseline %td
-gen baseline_year = n_53_0_0/365.25 + 1960
-gen baseline_age = (n_53_0_0-n_33_0_0)/365.25
+gen baseline_year = ts_53_0_0/365.25 + 1960
+gen baseline_age = (ts_53_0_0-n_33_0_0)/365.25
 
 * The self report variables are:	20002,	20004,	6150,					6152 ,			6153 & 6177
 * The matching time variables are: 	20008,	20010,	3627 & 3894 & 2966 & 4056, 	
@@ -30,19 +30,19 @@ foreach srnum of local selfreports{
 
 * count number of surveys & find the midpoints between each survey and last recorded survey response
 *i.e. midpoint_m is the midpoint between survey date of survey m (if that date exists) and the last survey date recorded
-ds n_53_*_0
+ds ts_53_*_0
 macro drop _survey
 local survey :  word count `r(varlist)'
 local survey =  `survey'-1
 * find survey midpoint dates (useful later to avoid having to recalculate them over and over
-gen midpoint_0 = n_53_0
+gen midpoint_0 = ts_53_0
 format midpoint_0 %td
 forval m=1(1)`survey' {
-gen midpoint_`m' =(n_53_`m'+ n_53_0)/2 if n_53_`m'!=.
+gen midpoint_`m' =(ts_53_`m'+ ts_53_0)/2 if ts_53_`m'!=.
 format midpoint_`m' %td
 local tempval = `m'-1
 	forval k=1(1)`tempval'{
-	replace midpoint_`m'= (n_53_`m'+ n_53_`k')/2 if n_53_`k'!=. & n_53_`m'_0!=. & midpoint_`m'< (n_53_`m'+ n_53_`k')/2
+	replace midpoint_`m'= (ts_53_`m'+ ts_53_`k')/2 if ts_53_`k'!=. & ts_53_`m'_0!=. & midpoint_`m'< (ts_53_`m'+ ts_53_`k')/2
 	
 	}
  }
@@ -324,7 +324,7 @@ if ``out'_Pre'==1{
 		*Interpolated values before the date of birth were truncated forwards to that time.
 		replace tempdate = dob if dob>tempdate & tempdate!=.
 		*Interpolated values after the time of data acquisition were truncated back to that time.
-		replace tempdate = n_53_`m'_0 if n_53_`m'_0 !=. & tempdate!=. & n_53_`m'_0 < tempdate
+		replace tempdate = ts_53_`m'_0 if ts_53_`m'_0 !=. & tempdate!=. & ts_53_`m'_0 < tempdate
 		* finally update SR date
 		replace SRdate_`out' = tempdate if tempdate<SR_inc_date_`out' & tempdate!=.
 		* repeat for incident events
@@ -333,7 +333,7 @@ if ``out'_Pre'==1{
 		format tempdate %td	
 		* all dates are after baseline, so post birth by definition
 		*Interpolated values after the time of data acquisition were truncated back to that time.
-		replace tempdate = n_53_`m'_0 if n_53_`m'_0 !=. & tempdate!=. & n_53_`m'_0 < tempdate
+		replace tempdate = ts_53_`m'_0 if ts_53_`m'_0 !=. & tempdate!=. & ts_53_`m'_0 < tempdate
 		* finally update SR date
 		replace SR_inc_date_`out' = tempdate if tempdate < SR_inc_date_`out' & tempdate!=. & tempdate >= baseline
 		drop tempdate dob
@@ -358,7 +358,7 @@ if ``out'_Pre'==1{
 		* loop over these records
 	forval i= 0(1)`count'{
 		replace SRmatch_`out'=1 if inlist(string(n_6153_0_`i'),``out'_Selfreport6153')
-		replace SRdate_`out'=n_53_0_0 if inlist(string(n_6153_0_`i'),``out'_Selfreport6153') & 	n_53_0_0 < SRdate_`out'
+		replace SRdate_`out'=ts_53_0_0 if inlist(string(n_6153_0_`i'),``out'_Selfreport6153') & 	ts_53_0_0 < SRdate_`out'
 		* ignore for incident - cannot possibly occur on first survey
 	}
 		* repeat for 6177
@@ -368,7 +368,7 @@ if ``out'_Pre'==1{
 	local count =  `count'-1
 	forval i= 0(1)`count'{
 		replace SRmatch_`out'=1 if inlist(string(n_6177_0_`i'),``out'_Selfreport6177')
-		replace SRdate_`out'=n_53_0_0 if inlist(string(n_6177_0_`i'),``out'_Selfreport6177') & 	n_53_0_0 < SRdate_`out'
+		replace SRdate_`out'=ts_53_0_0 if inlist(string(n_6177_0_`i'),``out'_Selfreport6177') & 	ts_53_0_0 < SRdate_`out'
 		*ignore for incident - cannot possibly occur on first survey
 	}	
 		

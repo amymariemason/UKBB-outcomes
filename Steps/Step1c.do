@@ -79,7 +79,7 @@ save `temp_oper', replace
 
 use `inputfile', clear
 capture rename n_eid eid
-rename n_53_0_0 baseline
+rename ts_53_0_0 baseline
 keep eid baseline 
 save `temp_date', replace
 

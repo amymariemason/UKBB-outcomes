@@ -3,7 +3,7 @@
 * open standard data and keep list of eids & survey dates
 use `inputfile', clear
 capture rename n_eid eid
-keep eid n_53_0_0 n_33_0_0 n_31_0_0 ts_40000_0_0 n_54_0_0
+keep eid ts_53_0_0 n_33_0_0 n_31_0_0 n_54_0_0
 
 * add censor dates
 
@@ -133,15 +133,14 @@ if _rc!=0 {
 * Loop over outcomes 
 **Determine who is a case (inc. excluding SR)
 foreach out of local output{
-	if ("`out_cancer'"=="1"){
-		egen `out' = rowmax (HES_`out' proc_`out' Deathmatch_`out' SRmatch_`out' CRmatch_`out')
-		egen `out'_nSR = rowmax (HES_`out' proc_`out' Deathmatch_`out' CRmatch_`out')
+	if ("`cancercheck'"=="1"){
+		egen `out' = rowmax (HES_`out' proc_`out' Deathmatch_`out' SRmatch_`out')
+		egen `out'_nSR = rowmax (HES_`out' proc_`out' Deathmatch_`out')
 
 	}
 	else{
-		egen `out' = rowmax (HES_`out' proc_`out' Deathmatch_`out' SRmatch_`out')
-		egen `out'_nSR = rowmax (HES_`out' proc_`out' Deathmatch_`out')
-	
+		egen `out' = rowmax (HES_`out' proc_`out' Deathmatch_`out' SRmatch_`out' CRmatch_`out')
+		egen `out'_nSR = rowmax (HES_`out' proc_`out' Deathmatch_`out' CRmatch_`out')	
 	}
 	label variable `out' ``out'_name'
 	label variable `out'_nSR ``out'_name_nSR'
@@ -151,7 +150,7 @@ foreach out of local output{
 * give as years since baseline
 foreach out of local output_Pre{
 	* create time to event from baseline in years 	
-	if ("`out_cancer'"=="1"){
+	if ("`cancercheck'"!="1"){
 		egen `out'_date = rowmin (firstdiag_HES_`out' firstdiag_proc_`out' firstdiag_death_`out' SRdate_`out' CRdate_`out')
 	}
 	else{
@@ -160,12 +159,12 @@ foreach out of local output_Pre{
 	label variable `out'_date "date of first `out' event or censor"
 	format `out'_date %td
 	replace `out'_date = date(censordate,"DMY") if `out'==0
-	replace `out'_date = ts_40000_0_0 if ts_40000_0_0 < `out'_date
-	gen `out'_years = (`out'_date - n_53_0_0)/365.25
+	replace `out'_date = ts_40000 if ts_40000 < `out'_date
+	gen `out'_years = (`out'_date - ts_53_0_0)/365.25
 	label variable `out'_years "years since baseline for `out' event or censor"
 	
 	* repeat excluding SR dates
-	if ("`out_cancer'"=="1"){
+	if ("`cancercheck'"!="1"){
 		egen `out'_nSR_date = rowmin (firstdiag_HES_`out' firstdiag_proc_`out' firstdiag_death_`out' CRdate_`out')
 	}
 	else{
@@ -174,12 +173,12 @@ foreach out of local output_Pre{
 	label variable `out'_nSR_date "date of first `out' event excluding self reported data"
 	format `out'_nSR_date %td
 	replace `out'_nSR_date = date(censordate,"DMY") if `out'_nSR==0
-	replace `out'_nSR_date = ts_40000_0_0 if ts_40000_0_0 < `out'_nSR_date
-	gen `out'_nSR_years = (`out'_nSR_date - n_53_0_0)/365.25
+	replace `out'_nSR_date = ts_40000 if ts_40000 < `out'_nSR_date
+	gen `out'_nSR_years = (`out'_nSR_date - ts_53_0_0)/365.25
 	label variable `out'_nSR_years "years since baseline for `out' event or censor (excludes self report)"
 	
 	* repeat using only incident events
-	if ("`out_cancer'"=="1"){
+	if ("`cancercheck'"!="1"){
 		egen `out'_inc_date = rowmin (firstinc_HES_`out' firstinc_proc_`out' firstdiag_death_`out' SR_inc_date_`out' CR_inc_date_`out')
 	}
 	else{
@@ -192,14 +191,14 @@ foreach out of local output_Pre{
 	replace `out'_inc=1 if `out'==1& `out'_inc_date!=.
 	label variable `out'_inc "`out' event post baseline"
 	gen `out'_pre = 0
-	replace `out'_pre=1 if `out'==1 & `out'_date<=n_53_0_0
+	replace `out'_pre=1 if `out'==1 & `out'_date<=ts_53_0_0
 	label variable `out'_pre "`out' event prior to baseline"
 	
 	* finish off incident event
 	format `out'_inc_date %td
 	replace `out'_inc_date = date(censordate,"DMY") if `out'_inc==0
-	replace `out'_inc_date = ts_40000_0_0 if ts_40000_0_0 < `out'_inc_date
-	gen `out'_inc_years = (`out'_inc_date - n_53_0_0)/365.25
+	replace `out'_inc_date = ts_40000 if ts_40000 < `out'_inc_date
+	gen `out'_inc_years = (`out'_inc_date - ts_53_0_0)/365.25
 	label variable `out'_inc_years "years since baseline for incident `out' event only or censor"
 	
 	
@@ -226,7 +225,7 @@ foreach out of local output_Pre{
 	label variable SR_inc_date_`out'  "date of first `out' event in self reporting post baseline"
 	rename SR_inc_date_`out' `out'_SR_inc_date
 	
-	if ("`out_cancer'"=="1"){
+	if ("`cancercheck'"!="1"){
 	
 		label variable CRdate_`out'  "date of first `out' event in cancer registry "
 		rename CRdate_`out' `out'_CR_date
@@ -240,18 +239,18 @@ foreach out of local output_Pre{
 
 * add age at baseline in years
 
-gen age_baseline = (n_53_0_0 - n_33_0_0)/365.25
+gen age_baseline = (ts_53_0_0 - n_33_0_0)/365.25
 label variable age_baseline "age at baseline in years"
 rename n_31_0_0 sex
-rename n_53_0_0 baseline
+rename ts_53_0_0 baseline
 rename n_33_0_0 dateofbirth
-rename ts_40000_0_0 dateofdeath
+rename ts_40000 dateofdeath
 
 * If time to event wanted 
 if (`Pre_wanted'==1){
 	* save all earliest dates sets for time to event variables
 	preserve
-	if ("`out_cancer'"=="1"){
+	if ("`cancercheck'"!="1"){
 		keep eid `output_Pre' *_HES_date *_death_date *_proc_date *_SR_date *_SR_inc_date *_CR_date *_CR_inc_date *_HES_inc_date *_proc_inc_date baseline dateofbirth dateofdeath
 		order eid `output_Pre' baseline dateofbirth dateofdeath *_date
 	}

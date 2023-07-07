@@ -6,11 +6,11 @@
 ** USER INPUT
 
 * CODE to run in slurm
-
-* stata -b do /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes/Steps/Make_Settings.do  "/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes/bespoke_outcome_v2.1.xls"
+* module load ceuadmin/stata/14
+* stata -b do /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code/Stata_outcomes/Steps/Make_Settings.do  "/rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code/Stata_outcomes/bespoke_outcome_v2.1.xls"
 
 * CODE to run in stata
-* do /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes/Steps/Make_Settings.do  "/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes/bespoke_outcome_v2.1.xls"
+* do /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code/Stata_outcomes/Steps/Make_Settings.do  "/rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Code/Stata_outcomes/bespoke_outcome_v2.1.xls"
 args input1
 
 * clear stata
@@ -57,7 +57,7 @@ file write dofile	"local instructionfile `set_instructionfile1' " _n
 file write dofile	"local LOCATION `set_LOCATION1' " _n 
 file write dofile	"local out_diabetes `set_out_diabetes1' " _n 
 file write dofile	"cd `set_LOCATION1' " _n 
-file write dofile	"qui include Master.do " _n
+file write dofile	"include Master.do " _n
 
 file close dofile
 

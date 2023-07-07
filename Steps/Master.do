@@ -3,14 +3,15 @@
 ***********************************************************
 * Author: Amy Mason 
 * Report bugs to: am2609@medschl.cam.ac.uk 
-* Date: Updated Jan 2021
+* Date: Updated Oct 2022
 ************************************************
 
 * Input: 
 ** inputfile: stata dta file with input fields: must contain n_eid variable and fields: 
-** ****    20002,20004, 6150, 40001, 40002, 
-** ****	   6152, 6153, 6177, 54, 53, 33, 31
+** ****    20002,20004, 6150, (40001, 40002 -> have been moved to seperate death files) 
+** ****	   6152, 6153, 6177, 54, 53, 33, 31  [NB: 33 Date of birth is not available in general] 
 ** ****    20008, 20010, 3627, 3894, 2966, 4056, 4012, 4022  (if doing time to event data)
+** *****   21000, 4041, 2976, 6177, 6153, 2986, 20002, 20003, 20009 (if doing diabetes)
 
 ** instructionfile: csv file containing instructions for each outcome, should be contained in the UKBB drive & called bespoke_outcome_current.csv
 ** **** NOTE: this program matches those outcomes as an OR check. Anyone who matches in any field will be marked case, all others control. 
@@ -39,78 +40,67 @@
 ******************************************************
 * COMMON USER INPUTS moved to settings.do 
 ******************************************************
-* file name for output of participant outcomes 
-* local outfilename ukb_Cardio_Oct_2020
-
-* location for output
-* local outfiles /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/outcome_requests
-
-*list outcomes from the instruction file you would like in your dataset (no commas between)
-* local output_org "aaa af ast cad_int dvt haem hf ischtia pe pvd_simple taa tia ukb_ich ukb_sah ukb_stri ukb_stroke vte"
-
-*Cancer set "ca_breast ca_prost ca_lung ca_bowel ca_mel ca_nhl ca_kid ca_headneck ca_brain ca_blad ca_panc ca_uter ca_leuk ca_oeso ca_ov ca_gastric ca_hep ca_myeloma ca_thyroid ca_bil ca_cerv ca_test ca_all"
-
-*CVD set "aaa af ast cad_int dvt haem hf ischtia pe pvd_simple taa tia ukb_ich ukb_sah ukb_stri ukb_stroke vte"
-
-*
-* xlsx file containing specifications for all instructions. 
-* local instructionfile `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes/bespoke_outcome_v2.1.xls""'
-
-* use cancer outcomes: 0 for no,  1 for yes
-* local out_cancer 0
-* use diabetes outcomes: 0 for no, 1 for yes
-* local out_diabetes 0
-
-* * location of step do files 
-* local LOCATION /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Stata_outcomes/Steps
-
-* location of temporary staging files (these can be deleted once run is complete)
-* local TEMPSPACE /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Code/Temp
 
 **********************************************************
+
+* create log
+
+********
+cap log close
+local time_string = "$S_DATE"+"_" +"$S_TIME"
+local time_string = subinstr("`time_string'", ":", "_", .)
+local time_string = subinstr("`time_string'", " ", "_", .)
+local logname ="`outfiles'"+"/"+"`outfilename'"+"`time_string'"+".log"
+log using "`logname'", replace
+noi di "Run on $S_DATE $S_TIME"
+
+
 
 ************************************************************
 * RARELY CHANGED USER INPUTS GO HERE 
 ***********************************************************
 
 
+
+
 * CREATED DATA FILES (see read me)
 * stata dta file extracted from UKBioBank
-local inputfile /rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/allfields.dta
-
-
-
+local inputfile /rds/project/asb38/rds-asb38-ceu-ukbiobank/projects/P7439/zz_mr/Amy/AMY_bb_outcomes/Input/allfields_PC_20210825.dta
 
 * RAW DATA FILES
 
 * locations of the HES outcomes 
-local HES `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Input/hesin_20200914.txt""'
-local HES_diag `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Input/hesin_diag_20200914.txt""'
-local HES_oper `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Input/hesin_oper_20200914.txt""'
+
+local HES `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/phenotype/P7439/pre_qc_data/HES/hesin_20230510.txt""'
+local HES_diag `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/phenotype/P7439/pre_qc_data/HES/hesin_diag_20230510.txt""'
+local HES_oper `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/phenotype/P7439/pre_qc_data/HES/hesin_oper_20230510.txt""'
 
 * location of primary care data
-local PRIMARY `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/primary_read_only20191011.csv""'
-local PRIMARY_REG `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/gp_registrations_20191011.txt""'
+local PRIMARY `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/phenotype/P7439/pre_qc_data/PrimaryCare/gp_clinical_20230510.txt""'
+local PRIMARY_REG `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/phenotype/P7439/pre_qc_data/PrimaryCare/gp_registrations_20230510.txt""'
 
 * withdrawal location
-local WITHDRAWN `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Input/w7439_20200820.csv""'
+local WITHDRAWN `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/phenotype/P7439/pre_qc_data/Withdrawals/w7439_2023-04-25.csv""'
 
 
 * location of additional death data
-local DEATH_add_cause `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Input/death_cause_20200914.txt""'
-local DEATH_add_date `""/rds/project/jmmh2/rds-jmmh2-projects/zz_mr/AMY_bb_outcomes/Input/death_20200914.txt""'
+local DEATH_add_cause `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/phenotype/P7439/pre_qc_data/Death/death_cause_20230510.txt""'
+local DEATH_add_date `""/rds/project/asb38/rds-asb38-ceu-ukbiobank/phenotype/P7439/pre_qc_data/Death/death_20230510.txt""'
+
 
 * date of extraction of data from biobank (used as censoring endpoint for controls)
 * see: http://biobank.ndph.ox.ac.uk/showcase/exinfo.cgi?src=Data_providers_and_dates* NB: I am ignoring the different enddate for primary care for England vision, as they are censored from the final dataset anyway. Endpoints are applied based on country of recruitment.  
 * enddates are censored to HES (if hes data only used), Prim (if primary data used), Cancer (if running cancer specific algorithm)
-local HES_END_ENG "30Jun2020"
-local HES_END_SCOT "31Oct2016"
-local HES_END_WALES "29Feb2016"
+local HES_END_ENG "31Oct2022"
+local HES_END_SCOT "31July2021"
+local HES_END_WALES "28Feb2018"
 local PRIM_END_SCOT "31Mar2017"
 local PRIM_END_WALES "31Aug2017"
 local PRIM_END_ENG "31May2016"
-local CANCER_ENG "31March2016"
-local CANCER_SCOT "31Oct2015"
+local CANCER_ENG "31Dec2020"
+local CANCER_SCOT "30Nov2021"
+local DEATH_ENG "30Nov2022"
+local DEATH_SCOT "30Nov2022"
 
 * what censoring to apply to controls; options = "HES", "PRIMARY", "CANCER"
 local CENSORTYPE "HES"
@@ -145,17 +135,6 @@ tempfile temp_primary_censor
 cd `LOCATION'
 
 
-
-* create log
-
-********
-cap log close
-local time_string = "$S_DATE"+"_" +"$S_TIME"
-local time_string = subinstr("`time_string'", ":", "_", .)
-local time_string = subinstr("`time_string'", " ", "_", .)
-local logname ="`outfiles'"+"/"+"`outfilename'"+"`time_string'"+".log"
-log using "`logname'", replace
-noi di "Run on $S_DATE $S_TIME"
 
 
 
@@ -227,20 +206,22 @@ qui include Step2b.do
 * Step3a: Death data
 * NB: the additional  file manages the additional death data that came in after the last major extract. 
 * If your death fields in the main input file are up to date, this is not needed - uncomment step3 and use that instead
+* If your death data is in both the main file (40000,40001,40002) AND a seperate file, use step3a_additional
 *qui include Step3a.do 
-qui include Step3a_additional.do
+* qui include Step3a_additional
+qui include Step3a_alternate.do
 
 local empty "NO_CODES"
-local cancercheck: list empty === all_CancerHistology
-
-if (`cancercheck'==0){
+local cancercheck: list empty === all_Selfreport20001
+* 1 means true ie do not check for cancer specifically
+if (`cancercheck'==1){
 * Self-report data
-qui include Step3b.do
+noi include Step3b.do
 }
 else{
 * If cancer specific data needed
-	qui include Step3b_cancer.do
-	qui include Step3c_cancer.do
+	noi include Step3b_cancer.do
+	noi include Step3c_cancer.do
 }
 
 * Diabetes specific data

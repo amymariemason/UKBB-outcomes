@@ -26,7 +26,8 @@ foreach out of local output{
 	* sort so first instance is on top for each participant
 	
 	gsort eid -HESmatch_`out' 
-	by eid: gen HES_`out' = HESmatch_`out'[1]
+	gen HES_`out' = .
+	by eid: replace HES_`out' = HESmatch_`out'[1]
 	
 }	
 	* If time to event data is wanted for this variable:

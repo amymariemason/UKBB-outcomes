@@ -58,6 +58,47 @@ merge 1:1 n_eid using `inputfile', update
 assert inlist(_merge,1,2,3)
 drop _merge
 
+tempfile working
+save `working', replace
+
+import delimited `DEATH_add_date', clear
+
+* reshape to wide: 1 record per eid
+keep eid ins date
+reshape wide date, i(eid) j(ins)
+
+* check second records of dates don't introduce multiple options for death date
+assert date_of_death0 ==date_of_death1 if date_of_death1!=""
+
+* turn into date format
+gen ts_40000_2_0 = date(date_of_death0, "DMY")
+format ts* %td
+drop date*
+*   
+* save in temp file
+tempfile deathtemp
+save `deathtemp', replace
+
+** load second dataset
+import delimited `DEATH_add_cause', clear
+
+* reshape to wide
+keep eid level cause
+rename cause cause
+sort eid level cause
+bysort eid level: gen count=_n
+reshape wide cause, i(eid level) j(count)
+rename cause* cause*_
+sort eid level
+reshape wide cause*, i(eid) j(level)
+rename cause*_1 s_40001_2_*
+rename cause*_2 s_40002_2_*
+
+
+* merge with data dataset
+merge 1:1 eid using `deathtemp', update
+drop _merge
+
 keep n_eid HES* s_40001* s_40002*
 
 ****** death report 40001
@@ -79,6 +120,10 @@ replace Deathmatch_T2 =1 if regexm(`i',"E11[0-9]*")
 
 
 drop s*
+
+merge 1:1 n_eid using `working', update
+drop _merge
+
 
 * combine death and HES
 gen HESDeath_dia_any = Deathmatch_any
